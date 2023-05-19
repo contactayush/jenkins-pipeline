@@ -1,0 +1,129 @@
+pipeline{
+    agent{
+        label{
+            label "built-in"
+            customWorkspace "/mnt/docker"
+        }
+    }
+    stages{
+        stage("installation-clean"){
+            steps{
+                sh "yum install docker -y"
+                sh "docker system prune -af"
+            }
+        }
+        stage("git-clone-23Q1"){
+            steps{
+                dir("/mnt/docker/23Q1"){
+                    sh "rm -rf *"
+                    sh "git clone https://github.com/contactayush/branches.git -b 23Q1"
+                    sh "chmod -R 777 *"
+                    sh "scp -i '/mnt/test.pem' -o StrictHostKeyChecking=no branches/index.html ec2-user@172.31.35.146:/mnt/jenkins"
+                    //sh "chmod -R 777 /mnt/docker/23Q1/index.html"
+                }
+            }
+        }
+        stage("git-clone-23Q2"){
+            steps{
+              dir("/mnt/project/23Q2"){
+                    sh "rm -rf *"
+                    sh "git clone https://github.com/contactayush/branches.git -b 23Q2"
+                    sh "chmod -R 777 *"
+                    sh "scp -i '/mnt/test.pem' -o StrictHostKeyChecking=no branches/index.html ec2-user@172.31.47.174:/mnt/jenkins"
+                    //sh "chmod -R 777 /mnt/docker/23Q2/index.html"
+                }  
+            }
+        }
+        stage("git-clone-23Q3"){
+            steps{
+               dir("/mnt/docker/23Q3"){
+                    sh "rm -rf *"
+                    sh "git clone https://github.com/contactayush/branches.git -b 23Q3"
+                    sh "chmod -R 777 *"
+                    sh "scp -i '/mnt/test.pem' -o StrictHostKeyChecking=no branches/index.html ec2-user@172.31.40.251:/mnt/jenkins"
+                    //sh "chmod -R 777 /mnt/docker/23Q3/index.html"
+                }  
+            }
+        }
+                
+               
+      stage("slave installation-23Q1"){
+          agent{
+              label{
+                  label "slave-1"
+                  customWorkspace "/mnt/docker"
+              }
+          }
+          steps{
+              sh "sudo yum install docker -y"
+              sh "sudo systemctl start docker"
+          }
+      }
+      stage("slave installation-23Q2"){
+          agent{
+              label{
+                  label "slave-2"
+                  customWorkspace "/mnt/docker"
+              }
+          }
+          steps{
+              sh "sudo yum install docker -y"
+              sh "sudo systemctl start docker"
+          }
+      }
+      stage("slave installation-23Q3"){
+          agent{
+              label{
+                  label "slave-3"
+                  customWorkspace "/mnt/docker"
+              }
+          }
+          steps{
+              sh "sudo yum install docker -y"
+              sh "sudo systemctl start docker"
+          }
+      }
+     stage("container+creation+23Q1"){
+       agent{
+              label{
+                  label "slave-1"
+                  customWorkspace "/mnt/docker"
+              }
+          }
+       steps{
+           dir("/mnt/jenkins"){
+           sh "sudo docker run -itdp 80:80 --name 23Q1 httpd"
+           sh "sudo docker cp index.html 23Q1:/usr/local/apache2/htdocs"
+           }
+       }
+     }
+     stage("container+creation+23Q2"){
+       agent{
+              label{
+                  label "slave-2"
+                  customWorkspace "/mnt/docker"
+              }
+          }
+       steps{
+           dir("/mnt/jenkins"){
+           sh "sudo docker run -itdp 90:80 --name 23Q2 httpd"
+           sh "sudo docker cp index.html 23Q2:/usr/local/apache2/htdocs"
+           }
+       }
+     }
+     stage("container+creation+23Q3"){
+       agent{
+              label{
+                  label "slave-3"
+                  customWorkspace "/mnt/docker"
+              }
+          }
+       steps{
+           dir("/mnt/jenkins"){
+           sh "sudo docker run -itdp 91:80 --name 23Q3 httpd"
+           sh "sudo docker cp index.html 23Q3:/usr/local/apache2/htdocs"
+           }
+       }
+     }
+}
+}
