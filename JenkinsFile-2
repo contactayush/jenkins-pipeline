@@ -1,0 +1,78 @@
+pipeline{
+    agent{
+        label{
+            label "built-in"
+            customWorkspace "/mnt/docker"
+        }
+    }
+    stages{
+        stage("installation-cleanup"){
+            steps{
+                sh "yum install docker -y"
+                sh "systemctl start docker"
+                //sh "docker stop 23Q1"
+                sh "docker system prune -af"
+            }
+        }
+        stage("git-clon-23Q1"){
+            steps{
+               dir("/mnt/docker/23Q1"){
+                sh "rm -rf *"
+                sh "git clone https://github.com/contactayush/branches.git -b 23Q1"
+                sh "chmod -R 777 *"
+            } 
+            }
+            
+        }
+        stage("container+deploy+23Q1"){
+            steps{
+                dir("/mnt/docker/23Q1/branches"){
+                    sh "docker run -itdp 80:80 --name 23Q1 httpd"
+                    sh "docker cp index.html 23Q1:/usr/local/apache2/htdocs"
+                    //sh "docker exec -it 23Q1 bash"
+                    //sh "chmod -R 777 htdocs/index.html "
+                }
+            }
+        }
+    stage("git-clone-23Q2"){
+            steps{
+               dir("/mnt/docker/23Q2"){
+                sh "rm -rf *"
+                sh "git clone https://github.com/contactayush/branches.git -b 23Q2"
+                sh "chmod -R 777 *"
+            } 
+            }
+            
+        }
+        stage("container+deploy+23Q2"){
+            steps{
+                dir("/mnt/docker/23Q2/branches"){
+                    sh "docker run -itdp 91:80 --name 23Q2 httpd"
+                    sh "docker cp index.html 23Q2:/usr/local/apache2/htdocs"
+                    //sh "docker exec -it 23Q2 bash"
+                    //sh "chmod -R 777 htdocs/index.html "
+                }
+            }
+        }
+        stage("git-clone-23Q3"){
+            steps{
+               dir("/mnt/docker/23Q3"){
+                sh "rm -rf *"
+                sh "git clone https://github.com/contactayush/branches.git -b 23Q3"
+                sh "chmod -R 777 *"
+            } 
+            }
+            
+        }
+        stage("container+deploy+23Q3"){
+            steps{
+                dir("/mnt/docker/23Q3/branches"){
+                    sh "docker run -itdp 90:80 --name 23Q3 httpd"
+                    sh "docker cp index.html 23Q3:/usr/local/apache2/htdocs"
+                    //sh "docker exec -tty 23Q3 bash"
+                    //sh "chmod -R 777 htdocs/index.html "
+                }
+            }
+        }
+    }
+}
